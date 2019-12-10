@@ -32,7 +32,7 @@ for i in range(n):
 # 先不考虑出发点
 
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0,1.0))
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,-1.0,1))
 creator.create("Individual", list, fitness=creator.FitnessMin)
 
 toolbox = base.Toolbox()
@@ -45,6 +45,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 
 # 使用s2型车 120
+w = 1000
 def eval(individual):
     distance = 0
     total_distance = 0
@@ -53,14 +54,14 @@ def eval(individual):
     length = len(individual)
     for i in range(length):
         weight = weight + df_data.loc[individual[i], 'weight']
-        if weight > 120:
+        if weight > w:
             total_distance = total_distance + distance
             distance = 0
             weight = df_data.loc[individual[i], 'weight']
-            loading_rate.append(weight / 120)
+            loading_rate.append(weight / w)
             continue
         if i == length - 1:
-            loading_rate.append(weight / 120)
+            loading_rate.append(weight / w)
             total_distance = total_distance + distance
         else:
             distance = distance + dis[individual[i]][individual[i + 1]]
@@ -70,7 +71,7 @@ def eval(individual):
     vehicle_num = len(loading_rate)
 
     select = (total_distance * vehicle_num) / avg_loading_rate
-    return total_distance, vehicle_num, avg_loading_rate
+    return select, vehicle_num, avg_loading_rate
 
 
 toolbox.register("evaluate", eval)
@@ -82,22 +83,23 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 def ga():
     pop = toolbox.population(n=300)
     hof = tools.HallOfFame(3)
-    stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats_size = tools.Statistics(key=len)
-    mstats = tools.MultiStatistics(fitness=stats, size=stats_size)
-    stats.register("avg", np.mean,axis=0)
-    stats.register("std", np.std,axis=0)
-    stats.register("min", np.min,axis=0)
-    stats.register("max", np.max,axis=0)
+    stats_distance = tools.Statistics(lambda ind: ind.fitness.values[0])
+    stats_num = tools.Statistics(lambda ind: ind.fitness.values[1])
+    stats_rate = tools.Statistics(lambda ind: ind.fitness.values[2])
+    mstats = tools.MultiStatistics(distance=stats_distance,num=stats_num,rate=stats_rate)
+    mstats.register("avg", np.mean)
+    mstats.register("std", np.std)
+    mstats.register("min", np.min)
+    mstats.register("max", np.max)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.5, ngen=10,
-                                   stats=stats, halloffame=hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.5, ngen=100,
+                                   stats=mstats, halloffame=hof, verbose=True)
 
     # fitness_value = np.array([i.fitness.values[0] for i in pop])
-
 
     return hof, log
 
 
 if __name__ == '__main__':
     hof, log = ga()
+    print(hof.keys)
