@@ -45,7 +45,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 # 使用s2型车 120
 w = 120
-def eval(individual):
+def eval(individual, df_data):
     distance = 0
     total_distance = 0
     loading_rate = []
@@ -89,7 +89,7 @@ def get_path(individual):
             start = i
     return path
 
-toolbox.register("evaluate", eval)
+toolbox.register("evaluate", eval, df_data=df_data)
 toolbox.register("mate", tools.cxPartialyMatched)
 toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.1)
 # toolbox.register("select", tools.selNSGA2)
