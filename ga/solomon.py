@@ -1,4 +1,5 @@
 import random
+import multiprocessing
 
 import pandas as pd
 import numpy as np
@@ -98,7 +99,7 @@ def eval(individual, distance_matrix, w, df_data):
     vehicle_num = len(loading_rate)
 
     # select = (total_distance * vehicle_num) / avg_loading_rate
-    return total_distance, vehicle_num
+    return total_distance, vehicle_num, avg_loading_rate
 
 
 def ga():
@@ -106,7 +107,7 @@ def ga():
     matrix = compute_matrix(df)
     size = len(df) - 1
 
-    creator.create("Fitness", base.Fitness, weights=(-1.0, -1.0))
+    creator.create("Fitness", base.Fitness, weights=(-1.0,-1.0, 1))
     creator.create("Individual", list, fitness=creator.Fitness)
 
     toolbox = base.Toolbox()
@@ -117,23 +118,27 @@ def ga():
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     toolbox.register("evaluate", eval, distance_matrix=matrix, df_data=df, w=vehicle[1])
-    toolbox.register("mate", tools.cxPartialyMatched)
+    toolbox.register("mate", tools.cxOrdered)
     toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.1)
-    toolbox.register("select", tools.selNSGA2)
-    # toolbox.register("select", tools.selSPEA2)
+    # toolbox.register("select", tools.selNSGA2)
+    # toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register("select", tools.selSPEA2)
 
-    pop = toolbox.population(n=1000)
-    hof = tools.HallOfFame(3)
+    # pool = multiprocessing.Pool(processes=4)
+    # toolbox.register("map", pool.map)
+
+    pop = toolbox.population(n=400)
+    hof = tools.HallOfFame(1)
     stats1 = tools.Statistics(lambda ind: ind.fitness.values[0])
     stats2 = tools.Statistics(lambda ind: ind.fitness.values[1])
-    # stats3 = tools.Statistics(lambda ind: ind.fitness.values[2])
-    mstats = tools.MultiStatistics(distance=stats1, num=stats2)
+    stats3 = tools.Statistics(lambda ind: ind.fitness.values[2])
+    mstats = tools.MultiStatistics(distance=stats1, vehicle_num=stats2, loading_rate=stats3)
     mstats.register("avg", np.mean)
     mstats.register("std", np.std)
     mstats.register("min", np.min)
     mstats.register("max", np.max)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=1000,
+    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.7, mutpb=0.8, ngen=1000,
                                    stats=mstats, halloffame=hof, verbose=True)
 
     path = get_path(hof.items[0], df, vehicle[1])
@@ -205,5 +210,4 @@ def main():
 
 
 if __name__ == '__main__':
-    plot_route()
-
+    main()
