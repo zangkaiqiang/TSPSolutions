@@ -14,14 +14,31 @@ class Vrp(Solomon):
         self.routes = []
         self.routes_weight = []
 
-    def read(self, file_name):
-        # file_name = 'data/pickup&delivery.csv'
+    def read_pd(self, file_name):
+        # file_name = 'data/pd-200.csv'
         df_vehlcle = pd.read_csv(file_name, skiprows=1, nrows=1)
         df_station = pd.read_csv(file_name, skiprows=5)
         self.data = df_station
-        self.length = len(df_station) - 1
         self.vehicle = df_vehlcle
         self.capacity = df_vehlcle.capacity.iloc[0]
+
+        self.length = len(self.data) - 1
+        self.unassign_station = list(range(1, self.length + 1))
+
+    def read_solomon(self, filename):
+        '''
+
+        :param filename:
+        :return:
+        '''
+        data = np.loadtxt(filename, skiprows=9)
+        # CUST NO.  XCOORD.   YCOORD.    DEMAND   READY TIME  DUE DATE   SERVICE   TIME
+        self.data = pd.DataFrame(data, columns=['id', 'x', 'y', 'weight', 'ready_time', 'due_data', 'service_time'])
+        vehicle = np.loadtxt(filename, skiprows=4, max_rows=1)
+        self.nums = len(self.data) - 1
+        self.points = self.data[['x', 'y']].values
+        self.capacity = vehicle[1]
+        self.length = len(self.data) - 1
         self.unassign_station = list(range(1, self.length + 1))
 
     def update_routes(self):
@@ -112,20 +129,44 @@ class Vrp(Solomon):
             for p in path:
                 x.append(points[p][0])
                 y.append(points[p][1])
-            sns.lineplot(x=x, y=y, sort=False)
+            sns.lineplot(x=x, y=y, sort=False, marker='o')
         plt.show()
 
 
-if __name__ == '__main__':
+def solomon_solution():
     vrp = Vrp()
-    file_name = 'data/pickup&delivery.csv'
-    vrp.read(file_name)
+    file_name = 'data/homberger_200_customer_instances/R1_2_1.TXT'
+    vrp.read_solomon(file_name)
     vrp.compute_matrix()
     # vrp.cal_routes()
     vrp.update_routes()
     flag = 0
     for i in range(10000):
-        if i - flag > 100:
+        if i - flag > 20:
+            break
+        vrp_copy = deepcopy(vrp)
+        vrp_copy.random_unassign_station(0.2)
+        vrp_copy.update_routes()
+
+        if vrp_copy.total_distance < vrp.total_distance:
+            vrp = vrp_copy
+            flag = i
+            print(i, vrp.total_distance)
+
+    for i in vrp.routes:
+        print(i)
+    vrp.plot_routes()
+
+def pd_solution():
+    vrp = Vrp()
+    file_name = 'data/pd-100.csv'
+    vrp.read_pd(file_name)
+    vrp.compute_matrix()
+    # vrp.cal_routes()
+    vrp.update_routes()
+    flag = 0
+    for i in range(10000):
+        if i - flag > 20:
             break
         vrp_copy = deepcopy(vrp)
         vrp_copy.random_unassign_station(0.2)
@@ -139,3 +180,6 @@ if __name__ == '__main__':
     for i in vrp.routes:
         print(i)
     vrp.plot_routes()
+
+if __name__ == '__main__':
+    solomon_solution()

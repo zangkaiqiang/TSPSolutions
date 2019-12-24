@@ -10,7 +10,7 @@ class Solomon:
         self.data = pd.DataFrame()
         self.vehicle = []
 
-    def read(self, filename):
+    def read_solomon(self, filename):
         '''
         read solomon format data
         :param filename:
