@@ -135,7 +135,8 @@ class vrp():
                 y.append(self.points[p][1])
                 point_type.append(self.pickup[p])
             sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=200)
-            sns.lineplot(x=x, y=y, sort=False)
+            # sns.lineplot(x=x, y=y, sort=False)
+            plt.plot(x, y)
         plt.show()
 
     def compute_matrix(self):
