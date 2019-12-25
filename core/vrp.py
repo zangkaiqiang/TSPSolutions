@@ -1,13 +1,11 @@
 import pandas as pd
 import numpy as np
-from solomon import Solomon
 import seaborn as sns
 import matplotlib.pyplot as plt
 import random
 from copy import deepcopy
 
-
-class Vrp(Solomon):
+class vrp():
 
     def __init__(self):
         self.total_distance = 0
@@ -24,8 +22,11 @@ class Vrp(Solomon):
 
         self.length = len(self.data) - 1
         self.unassign_station = list(range(1, self.length + 1))
+        self.pickup = self.data['pickup'].tolist()
+        self.weight = self.data['weight'].tolist()
+        self.points = self.data[['x','y']].values
 
-    def read_solomon(self, filename):
+    def read_solomons(self, filename):
         '''
 
         :param filename:
@@ -40,6 +41,10 @@ class Vrp(Solomon):
         self.capacity = vehicle[1]
         self.length = len(self.data) - 1
         self.unassign_station = list(range(1, self.length + 1))
+        self.pickup = np.zeros(len(self.data))
+        self.weight = self.data['weight'].tolist()
+
+
 
     def update_routes(self):
         '''
@@ -53,7 +58,6 @@ class Vrp(Solomon):
             best_station = -1
             best_route = -1
             best_position = -1
-
             for i in self.unassign_station:
                 distance_cost = 2 * self.matrix[0, i]
                 if distance_cost < best_cost:
@@ -64,12 +68,13 @@ class Vrp(Solomon):
                 for r in range(len(self.routes)):
                     route = self.routes[r]
                     route_weight = self.routes_weight[r]
+
                     for k in range(1, len(route)):
-                        if route_weight + self.data['weight'].iloc[i] > self.capacity:
+                        if route_weight + self.weight[i] > self.capacity:
                             continue
+
                         distance_cost = self.matrix[route[k - 1], i] + self.matrix[i, route[k]] - self.matrix[
                             route[k - 1], route[k]]
-
                         if distance_cost < best_cost:
                             best_cost = distance_cost
                             best_station = i
@@ -115,71 +120,96 @@ class Vrp(Solomon):
                     self.total_distance = self.total_distance - distance_change
                     route.remove(s)
 
-
     def plot(self):
         sns.relplot(x='x', y='y', data=self.data)
         plt.show()
 
     def plot_routes(self):
-        points = self.data[['x', 'y']].values
         for path in self.routes:
             path = [int(i) for i in path]
             x = []
             y = []
+            point_type = []
             for p in path:
-                x.append(points[p][0])
-                y.append(points[p][1])
-            sns.lineplot(x=x, y=y, sort=False, marker='o')
+                x.append(self.points[p][0])
+                y.append(self.points[p][1])
+                point_type.append(self.pickup[p])
+            sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=200)
+            sns.lineplot(x=x, y=y, sort=False)
         plt.show()
+
+    def compute_matrix(self):
+        '''
+        # 计算距离矩阵
+        :param df:
+        :return:
+        '''
+        size = len(self.data)
+        matrix = np.ndarray((size, size))
+        points = self.data[['x', 'y']].values
+        for i in range(size):
+            for j in range(size):
+                matrix[i][j] = self.compute_distance(points[i], points[j])
+        self.matrix = matrix
+
+    @staticmethod
+    def compute_distance(p1, p2):
+        '''
+        :param p1:
+        :param p2:
+        :return:
+        '''
+        return np.math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
 
 def solomon_solution():
-    vrp = Vrp()
-    file_name = 'data/homberger_200_customer_instances/R1_2_1.TXT'
-    vrp.read_solomon(file_name)
-    vrp.compute_matrix()
+    vrp_case = vrp()
+    file_name = 'data/solomon-100/In/c101.txt'
+    vrp_case.read_solomon(file_name)
+    vrp_case.compute_matrix()
     # vrp.cal_routes()
-    vrp.update_routes()
+    vrp_case.update_routes()
     flag = 0
     for i in range(10000):
-        if i - flag > 20:
+        if i - flag > 100:
             break
-        vrp_copy = deepcopy(vrp)
+        vrp_copy = deepcopy(vrp_case)
         vrp_copy.random_unassign_station(0.2)
         vrp_copy.update_routes()
 
-        if vrp_copy.total_distance < vrp.total_distance:
-            vrp = vrp_copy
+        if int(vrp_copy.total_distance * 1000) < int(vrp_case.total_distance * 1000):
+            vrp_case = vrp_copy
             flag = i
-            print(i, vrp.total_distance)
+            print(i, vrp_case.total_distance)
 
-    for i in vrp.routes:
+    for i in vrp_case.routes:
         print(i)
-    vrp.plot_routes()
+    vrp_case.plot_routes()
+
 
 def pd_solution():
-    vrp = Vrp()
+    vrp_case = vrp()
     file_name = 'data/pd-100.csv'
-    vrp.read_pd(file_name)
-    vrp.compute_matrix()
+    vrp_case.read_pd(file_name)
+    vrp_case.compute_matrix()
     # vrp.cal_routes()
-    vrp.update_routes()
+    vrp_case.update_routes()
     flag = 0
     for i in range(10000):
         if i - flag > 20:
             break
-        vrp_copy = deepcopy(vrp)
+        vrp_copy = deepcopy(vrp_case)
         vrp_copy.random_unassign_station(0.2)
         vrp_copy.update_routes()
 
-        if vrp_copy.total_distance < vrp.total_distance:
-            vrp = vrp_copy
+        if vrp_copy.total_distance < vrp_case.total_distance:
+            vrp_case = vrp_copy
             flag = i
-            print(i,vrp.total_distance)
+            print(i, vrp_case.total_distance)
 
-    for i in vrp.routes:
+    for i in vrp_case.routes:
         print(i)
-    vrp.plot_routes()
+    vrp_case.plot_routes()
 
 if __name__ == '__main__':
-    solomon_solution()
+    pd_solution()

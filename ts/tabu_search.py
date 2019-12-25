@@ -1,7 +1,4 @@
-import random
-import pandas as pd
-import numpy as np
-from solomon import Solomon
+from core.solomon import Solomon
 
 if __name__ == '__main__':
     filepath = 'data/solomon-100/c101.25.txt'

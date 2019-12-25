@@ -1,16 +1,14 @@
 import pandas as pd
 import numpy as np
 import random
-
-import seaborn as sns
 import matplotlib.pyplot as plt
 
-class Solomon:
+class solomon:
     def __init__(self):
         self.data = pd.DataFrame()
         self.vehicle = []
 
-    def read_solomon(self, filename):
+    def read_solomons(self, filename):
         '''
         read solomon format data
         :param filename:
