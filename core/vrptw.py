@@ -1,10 +1,10 @@
 from core.vrp import vrp
+from copy import deepcopy
 
 
 class vrptw(vrp):
     def __init__(self):
         super().__init__()
-
 
     def check(self, route):
         '''
@@ -14,20 +14,36 @@ class vrptw(vrp):
         '''
         if self.check_weight(route) is False:
             return False
+        if self.check_tw(route) is False:
+            return False
         return True
 
-
-    def check_weight(self,route):
+    def check_weight(self, route):
         '''
-
+        载重检测
         :param route:
         :return:
         '''
         weight = 0
         for i in route:
-            weight = weight+ self.weight[i]
-            if weight>self.capacity:
+            weight = weight + self.weight[i]
+            if weight > self.capacity:
                 return False
+        return True
+
+    def check_tw(self, route):
+        '''
+        时间窗检测
+        :param route:
+        :return:
+        '''
+        first = route[1]
+        last_finish_time = self.ready_time[first] + self.service_time[first]
+        for i in route[2:-1]:
+            if last_finish_time > self.due_time[i]:
+                return False
+            ready_time = max(self.ready_time[i], last_finish_time)
+            last_finish_time = ready_time + self.service_time[i]
         return True
 
     def update_routes(self):
@@ -51,10 +67,11 @@ class vrptw(vrp):
 
                 for r in range(len(self.routes)):
                     route = self.routes[r]
-                    route_weight = self.routes_weight[r]
 
                     for k in range(1, len(route)):
-                        if route_weight + self.weight[i] > self.capacity:
+                        route_copy = deepcopy(route)
+                        route_copy.insert(k, i)
+                        if self.check(route_copy) is False:
                             continue
 
                         distance_cost = self.matrix[route[k - 1], i] + self.matrix[i, route[k]] - self.matrix[
@@ -76,3 +93,31 @@ class vrptw(vrp):
                 self.routes_weight[best_route] = self.routes_weight[best_route] + self.data['weight'].iloc[best_station]
             self.total_distance = self.total_distance + best_cost
             self.unassign_station.remove(best_station)
+
+def solomon_solution():
+    vrp_case = vrptw()
+    file_name = 'data/homberger_200_customer_instances/C1_2_1.TXT'
+    vrp_case.read_solomon(file_name)
+    vrp_case.compute_matrix()
+    # vrp.cal_routes()
+    vrp_case.update_routes()
+    flag = 0
+    for i in range(10000):
+        if i - flag > 100:
+            break
+        vrp_copy = deepcopy(vrp_case)
+        vrp_copy.random_unassign_station(0.2)
+        vrp_copy.update_routes()
+
+        if int(vrp_copy.total_distance * 1000) < int(vrp_case.total_distance * 1000):
+            vrp_case = vrp_copy
+            flag = i
+            print(i, vrp_case.total_distance)
+
+    for i in vrp_case.routes:
+        if len(i)>2:
+            print(i)
+    vrp_case.plot_routes()
+
+if __name__ == '__main__':
+    solomon_solution()

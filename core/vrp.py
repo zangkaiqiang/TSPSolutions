@@ -11,6 +11,14 @@ class vrp():
         self.total_distance = 0
         self.routes = []
         self.routes_weight = []
+        self.data = None
+        self.vehicle = None
+        self.capacity = 0
+        self.length = 0
+        self.unassign_station = []
+        self.pickup = []
+        self.weight = []
+        self.points = []
 
     def read_pd(self, file_name):
         # file_name = 'data/pd-200.csv'
@@ -22,11 +30,12 @@ class vrp():
 
         self.length = len(self.data) - 1
         self.unassign_station = list(range(1, self.length + 1))
+
         self.pickup = self.data['pickup'].tolist()
         self.weight = self.data['weight'].tolist()
         self.points = self.data[['x','y']].values
 
-    def read_solomons(self, filename):
+    def read_solomon(self, filename):
         '''
 
         :param filename:
@@ -34,16 +43,21 @@ class vrp():
         '''
         data = np.loadtxt(filename, skiprows=9)
         # CUST NO.  XCOORD.   YCOORD.    DEMAND   READY TIME  DUE DATE   SERVICE   TIME
-        self.data = pd.DataFrame(data, columns=['id', 'x', 'y', 'weight', 'ready_time', 'due_data', 'service_time'])
+        self.data = pd.DataFrame(data, columns=['id', 'x', 'y', 'weight', 'ready_time', 'due_time', 'service_time'])
         vehicle = np.loadtxt(filename, skiprows=4, max_rows=1)
-        self.nums = len(self.data) - 1
-        self.points = self.data[['x', 'y']].values
+        # df_vehicle = pd.DataFrame(vehicle,columns=['number','capacity'])
         self.capacity = vehicle[1]
+
+
         self.length = len(self.data) - 1
         self.unassign_station = list(range(1, self.length + 1))
+
         self.pickup = np.zeros(len(self.data))
         self.weight = self.data['weight'].tolist()
-
+        self.points = self.data[['x', 'y']].values
+        self.ready_time = self.data['ready_time'].tolist()
+        self.due_time = self.data['due_time'].tolist()
+        self.service_time = self.data['service_time'].tolist()
 
 
     def update_routes(self):
@@ -134,7 +148,7 @@ class vrp():
                 x.append(self.points[p][0])
                 y.append(self.points[p][1])
                 point_type.append(self.pickup[p])
-            sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=200)
+            sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=100)
             # sns.lineplot(x=x, y=y, sort=False)
             plt.plot(x, y)
         plt.show()
@@ -165,7 +179,7 @@ class vrp():
 
 def solomon_solution():
     vrp_case = vrp()
-    file_name = 'data/solomon-100/In/c101.txt'
+    file_name = 'data/solomon-100/In/r101.txt'
     vrp_case.read_solomon(file_name)
     vrp_case.compute_matrix()
     # vrp.cal_routes()
@@ -213,4 +227,4 @@ def pd_solution():
     vrp_case.plot_routes()
 
 if __name__ == '__main__':
-    pd_solution()
+    solomon_solution()
