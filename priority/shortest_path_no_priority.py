@@ -53,7 +53,7 @@ def plot_path(path):
     sns.scatterplot(x=x, y=y, style=priority, legend=False, s=100)
     # sns.lineplot(x=x, y=y, sort=False)
     plt.plot(x, y)
-    plt.savefig('output/priority.png')
+    plt.savefig('output/shortest_path.png')
     plt.show()
 
 
@@ -65,37 +65,8 @@ if __name__ == '__main__':
     unassign = list(range(length))
 
     path = [0]
-    while (len(priority_list) > 0):
-        min_distance = 1 << 100
-        best = 0
-        index = 0
-        if len(path) == 1:
-            for i in priority_list:
-                distance = mat[0, i]
-                if distance < min_distance:
-                    best = i
-                    min_distance = distance
-                    index = 0
-        else:
-            path_copy = deepcopy(path)
-            origin_distance = path_length(path_copy)
-            for i in priority_list:
-                for j in range(len(path_copy)):
-                    path_copy.insert(j + 1, i)
-                    if not check_path(path_copy):
-                        continue
-                    new_distance = path_length(path_copy)
-                    if new_distance < min_distance:
-                        best = i
-                        min_distance = new_distance
-                        index = j
-                    path_copy.remove(i)
-        path.insert(index+1, best)
-        priority_list.remove(best)
-
     for i in path:
         unassign.remove(i)
-
     while len(unassign) > 0:
         min_distance = 1 << 100
         best = 0
@@ -106,8 +77,8 @@ if __name__ == '__main__':
         for i in unassign:
             for j in range(len(path_copy)):
                 path_copy.insert(j + 1, i)
-                if not check_path(path_copy):
-                    continue
+                # if not check_path(path_copy):
+                #     continue
                 new_distance = path_length(path_copy)
                 if new_distance < min_distance:
                     best = i
