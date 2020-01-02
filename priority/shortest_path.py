@@ -44,7 +44,6 @@ def check_path(path):
     return True
 
 
-
 def plot_path(path):
     x = []
     y = []
@@ -54,6 +53,7 @@ def plot_path(path):
     sns.scatterplot(x=x, y=y, style=priority, legend=False, s=100)
     # sns.lineplot(x=x, y=y, sort=False)
     plt.plot(x, y)
+    plt.savefig('output/priority.png')
     plt.show()
 
 
