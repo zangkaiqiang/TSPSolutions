@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-np.random.seed(1)
+np.random.seed(2)
 points_num = 21
 
 x = np.random.randint(1,1000,points_num)
