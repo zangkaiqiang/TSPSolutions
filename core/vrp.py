@@ -134,11 +134,12 @@ class vrp():
                     self.total_distance = self.total_distance - distance_change
                     route.remove(s)
 
-    def plot(self):
+    def plot(self,title='source'):
         sns.relplot(x='x', y='y', data=self.data)
+        plt.savefig('output/%s.png'%title)
         plt.show()
 
-    def plot_routes(self):
+    def plot_routes(self,title='output'):
         for path in self.routes:
             path = [int(i) for i in path]
             x = []
@@ -151,6 +152,7 @@ class vrp():
             sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=100)
             # sns.lineplot(x=x, y=y, sort=False)
             plt.plot(x, y)
+        plt.savefig('output/%s.png'%title)
         plt.show()
 
     def compute_matrix(self):
@@ -224,7 +226,7 @@ def pd_solution():
 
     for i in vrp_case.routes:
         print(i)
-    vrp_case.plot_routes()
+    vrp_case.plot_routes('solomon-without-tw')
 
 if __name__ == '__main__':
     solomon_solution()

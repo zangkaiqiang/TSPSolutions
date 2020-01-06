@@ -11,6 +11,7 @@ class Path:
 
     def read_csv(self, filename):
         df = pd.read_csv(filename)
+        self.dataframe = df
         self.length = len(df)
         self.points = df[['x', 'y']].values
         self.start_point = self.points[0]
@@ -50,6 +51,13 @@ class Path:
                 return False
             ac_start_time.append(ast)
         return True
+
+    def get_start_time(self):
+        ac_start_time = [0]
+        for i in range(1, len(self.path)):
+            ast = max( self.service_time[self.path[i - 1]] + ac_start_time[i - 1],  self.start_time[self.path[i]])
+            ac_start_time.append(ast)
+        return ac_start_time
 
     def plot(self):
         x = []
@@ -155,6 +163,11 @@ class Path:
     def info(self):
         print(self.path)
         print(self.path_length(self.path))
+        ac_start_time = self.get_start_time()
+        df = pd.DataFrame({'path':self.path, 'ac_start_time':ac_start_time})
+        df = df.merge(self.dataframe, how='left', left_on='path', right_on='id')
+        df.to_csv('output/priority-out.csv')
+        print(df)
 
 
 if __name__ == '__main__':

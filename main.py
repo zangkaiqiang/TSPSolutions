@@ -1,5 +1,6 @@
-from core.vrppd import Vrp
+from core.vrppd import vrp
 
-vrp = Vrp()
-file_name = 'data/pd-200.csv'
-vrp.read_pd(file_name)
+vrp_case = vrp()
+file_name = 'data/solomon-100/In/r101.txt'
+vrp_case.read_solomon(file_name)
+vrp_case.plot()

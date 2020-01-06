@@ -96,7 +96,7 @@ class vrptw(vrp):
 
 def solomon_solution():
     vrp_case = vrptw()
-    file_name = 'data/homberger_200_customer_instances/C1_2_1.TXT'
+    file_name = 'data/solomon-100/In/r101.txt'
     vrp_case.read_solomon(file_name)
     vrp_case.compute_matrix()
     # vrp.cal_routes()
@@ -117,7 +117,7 @@ def solomon_solution():
     for i in vrp_case.routes:
         if len(i)>2:
             print(i)
-    vrp_case.plot_routes()
+    vrp_case.plot_routes('solomon-tw')
 
 if __name__ == '__main__':
     solomon_solution()
