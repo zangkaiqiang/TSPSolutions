@@ -1,10 +1,28 @@
 from copy import deepcopy
 from core.vrp import vrp
+import pandas as pd
 
 
 class vrppd(vrp):
     def __init__(self):
         super().__init__()
+        self.pickup = []
+
+
+    def read_pd(self, file_name):
+        # file_name = 'data/pd-200.csv'
+        df_vehlcle = pd.read_csv(file_name, skiprows=1, nrows=1)
+        df_station = pd.read_csv(file_name, skiprows=5)
+        self.data = df_station
+        self.vehicle = df_vehlcle
+        self.capacity = df_vehlcle.capacity.iloc[0]
+
+        self.length = len(self.data) - 1
+        self.unassign_station = list(range(1, self.length + 1))
+
+        self.pickup = self.data['pickup'].tolist()
+        self.weight = self.data['weight'].tolist()
+        self.points = self.data[['x','y']].values
 
     def check(self, route):
         '''
