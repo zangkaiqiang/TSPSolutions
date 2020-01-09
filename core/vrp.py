@@ -133,9 +133,8 @@ class vrp():
             for p in path:
                 x.append(self.points[p][0])
                 y.append(self.points[p][1])
-                point_type.append(self.pickup[p])
-            sns.scatterplot(x=x,y=y,style=point_type,legend=False,s=100)
-            # sns.lineplot(x=x, y=y, sort=False)
+                # point_type.append(self.pickup[p])
+            sns.scatterplot(x=x,y=y,s=100)
             plt.plot(x, y)
         plt.savefig('output/%s.png'%title)
         plt.show()
